@@ -6,6 +6,7 @@ defmodule ExSharp do
   @ex_sharp_dll Path.expand("../priv/ExSharp.dll", __DIR__)
   @send_mod_list_cmd <<203, 61, 10, 114>>
   @atom_encoding :utf8
+  @csx_path Application.get_env(:ex_sharp, :csx_path)
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
@@ -13,7 +14,12 @@ defmodule ExSharp do
       worker(@roslyn, [[name: @roslyn]])
     ]
     opts = [strategy: :one_for_one, name: ExSharp.Supervisor]
-    Supervisor.start_link(children, opts)
+    sup = Supervisor.start_link(children, opts)
+    unless is_nil(@csx_path) do
+      IO.puts "Loading csx `#{@csx_path}`..."
+      load_csx(@csx_path)
+    end
+    sup
   end
   
   @doc """
