@@ -1,0 +1,25 @@
+message ModuleSpec {
+  required string name = 1;
+  
+  message Function {
+    required string name = 1;
+    required int32 arity = 2;
+  }
+  
+  repeated Function functions = 2;
+}
+
+message ModuleList {
+  repeated ModuleSpec modules = 1;
+}
+
+message FunctionCall {
+	required string moduleName = 1;
+	required string functionName = 2;
+	required int32 argc = 3;
+	repeated bytes argv = 4;
+}
+
+message FunctionResult {
+	required bytes value = 1;
+}

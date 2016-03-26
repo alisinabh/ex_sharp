@@ -1,0 +1,3 @@
+%{"exprotobuf": {:hex, :exprotobuf, "1.0.0"},
+  "gpb": {:hex, :gpb, "3.18.10"},
+  "porcelain": {:hex, :porcelain, "2.0.1"}}
