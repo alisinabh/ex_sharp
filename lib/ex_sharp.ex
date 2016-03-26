@@ -15,11 +15,11 @@ defmodule ExSharp do
     ]
     opts = [strategy: :one_for_one, name: ExSharp.Supervisor]
     sup = Supervisor.start_link(children, opts)
+    IO.puts "test: #{@csx_path}"
     unless is_nil(@csx_path) do
       IO.puts "Loading csx `#{@csx_path}`..."
       load_csx(@csx_path)
     end
-    sup
   end
   
   @doc """
