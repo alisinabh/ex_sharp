@@ -90,7 +90,7 @@ defmodule ExSharp do
     vars = get_vars(fun.arity)
     ~s"""
       def #{fun.name}(#{vars}) do
-        ExSharp.call_cs_method(__MODULE__, "#{fun.name}", [#{vars}])
+        ExSharp.csharp_apply(__MODULE__, "#{fun.name}", [#{vars}])
       end
     """
   end

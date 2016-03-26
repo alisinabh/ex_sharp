@@ -20,7 +20,7 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
         
 ## Usage
   
-  Using the following C# code in `foo.csx`:
+ Using the following C# code in `foo.csx`:
   
         [ExSharpModule("Foo")]
         public static class Foo 
@@ -34,12 +34,12 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
           [ExSharpFunction("echo", 1)]
           public static ElixirTerm Baz(ElixirTerm[] argv, int argc) 
           {
-            var str = ElixirTerm.GetUTF8String(argv[0])
+            var str = ElixirTerm.GetUTF8String(argv[0]);
             return ElixirTerm.MakeUTF8String($"from csharp: {str}");
           }
         }
         
-  And a module with the following structure:
+ And a module with the following structure:
 
         defmodule Foo do
           @on_load  :load_csx
@@ -49,10 +49,10 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
           end
         end
   
-  The following functions will become available at runtime:
+ The following functions will become available at runtime:
   
-      1. Foo.pi/0
-      2. Foo.echo/1
+  1. Foo.pi/0
+  2. Foo.echo/1
   
   
 
