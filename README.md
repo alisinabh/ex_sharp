@@ -42,7 +42,7 @@ Using the following C# code in `foo.csx`:
         }
       }
       
-      var runner = new ExSharp.ExSharpRunner();
+      var runner = new ExSharp.Runner();
       runner.Run();
         
 And a module with the following structure:

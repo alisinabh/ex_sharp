@@ -18,5 +18,5 @@ public static class Foo
   }
 }
 
-var runner = new ExSharp.ExSharpRunner();
+var runner = new ExSharp.Runner();
 runner.Run();
