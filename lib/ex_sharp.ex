@@ -38,13 +38,13 @@ defmodule ExSharp do
     public static class Foo 
     {
       [ExSharpFunction("bar", 0)]
-      public static ElixirTerm Bar(ElixirTerm[] argc, int argv) 
+      public static ElixirTerm Bar(ElixirTerm[] argv, int argc) 
       {
         ...
       }
       
       [ExSharpFunction("baz", 1)]
-      public static ElixirTerm Baz(ElixirTerm[] argc, int argv) 
+      public static ElixirTerm Baz(ElixirTerm[] argv, int argc) 
       {
         ...
       }
@@ -103,7 +103,7 @@ defmodule ExSharp do
   defp get_vars(_), do: raise ExSharpException, message: "Cannot define function with negative arity"
   
   @doc """
-  Attempts to call a C#
+  Attempts to call a C# function from the loaded script
   """
   def csharp_apply(module, fun, args) do
     data = 
