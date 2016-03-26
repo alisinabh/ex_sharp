@@ -22,32 +22,32 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
   
   Using the following C# code in `foo.csx`:
   
-        [ExSharpModule("Foo")]
-        public static class Foo 
+      [ExSharpModule("Foo")]
+      public static class Foo 
+      {
+        [ExSharpFunction("pi", 0)]
+        public static ElixirTerm Pi(ElixirTerm[] argv, int argc) 
         {
-          [ExSharpFunction("pi", 0)]
-          public static ElixirTerm Pi(ElixirTerm[] argv, int argc) 
-          {
-            return ElixirTerm.MakeDouble(3.14159);
-          }
-          
-          [ExSharpFunction("echo", 1)]
-          public static ElixirTerm Baz(ElixirTerm[] argv, int argc) 
-          {
-            var str = ElixirTerm.GetUTF8String(argv[0])
-            return ElixirTerm.MakeUTF8String($"from csharp: {str}");
-          }
+          return ElixirTerm.MakeDouble(3.14159);
         }
+        
+        [ExSharpFunction("echo", 1)]
+        public static ElixirTerm Baz(ElixirTerm[] argv, int argc) 
+        {
+          var str = ElixirTerm.GetUTF8String(argv[0])
+          return ElixirTerm.MakeUTF8String($"from csharp: {str}");
+        }
+      }
         
   And a module with the following structure:
 
-        defmodule Foo do
-          @on_load  :load_csx
-      
-          def load_csx do
-            ExSharp.load_csx("path/to/foo.csx")
-          end
+      defmodule Foo do
+        @on_load  :load_csx
+    
+        def load_csx do
+          ExSharp.load_csx("path/to/foo.csx")
         end
+      end
   
   The following functions will become available at runtime:
   
