@@ -2,13 +2,15 @@ defmodule ExSharp.Roslyn do
   use GenServer
   @script_extension ".csx"
   @asm_extension ".dll"
-  @cs_src "priv"
   @timeout_ms 1000
+  @send_mod_list_cmd <<203, 61, 10, 114>>
+  @proto_header <<112, 198, 7, 27>>
+  alias ExSharp.Messages.{ModuleList, FunctionCall, FunctionResult}
   
   # Client
   
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, [], opts)
+  def start_link(ex_sharp_path, csx_path, opts \\ []) do
+    GenServer.start_link(__MODULE__, [ex_sharp_path, csx_path], opts)
   end
   
   def load_script(server, path) do
@@ -25,54 +27,26 @@ defmodule ExSharp.Roslyn do
     GenServer.cast(server, {:load_asm, path})
   end
   
-  def send_receive(server, data, timeout \\ @timeout_ms) do
-    GenServer.call(server, {:send_receive, data, timeout})
-  end
-  
-  def send_proto_receive_proto(server, proto, timeout \\ @timeout_ms) do
-    GenServer.call(server, {:send_proto_receive_proto, proto, timeout})
-  end
-  def send_data_receive_proto(server, data, timeout \\ @timeout_ms) do
-    GenServer.call(server, {:send_data_receive_proto, data, timeout})
-  end
-  
-  def send(server, data) do
-    GenServer.cast(server, {:send, data})
+  def function_call(server, %FunctionCall{} = call) do
+    GenServer.call(server, {:func_call, call})
   end
   
   # Server
-  
-  def init([]) do
-    roslyn_path
-    |> open_port
-    |> to_init_state
+  def init([ex_sharp_path, nil]) do
+    proc = open_port(roslyn_path, ex_sharp_path, nil)
+    {:ok, %{proc: proc, pid: proc.pid}}
+  end
+  def init([ex_sharp_path, csx_path]) do
+    proc = open_port(roslyn_path, ex_sharp_path, csx_path)      
+    send_receive_proto(proc, @send_mod_list_cmd, ModuleList)
+    |> ExSharp.init_modules
+    {:ok, %{proc: proc, pid: proc.pid}}
   end
   
-  def handle_call({:send_receive, data, timeout}, _from, %{pid: pid} = state) do
-    send_input(state.proc, <<byte_size(data) :: 32>> <> data)
-    result = receive do
-      {^pid, :data, :out, data} -> String.rstrip(data)
-    after
-      timeout -> nil
-    end
-    {:reply, result, state}
-  end
-  def handle_call({:send_data_receive_proto, data, timeout}, _from, %{pid: pid} = state) do
-    send_input(state.proc, <<byte_size(data) :: 32>> <> data)
-    result = receive do
-      {^pid, :data, :out, <<112, 198, 7, 27, data :: binary>>} -> data
-    after
-      timeout -> nil
-    end
-    {:reply, result, state}
-  end
-  def handle_call({:send_proto_receive_proto, data, timeout}, _from, %{pid: pid} = state) do
-    send_input(state.proc, <<112, 198, 7, 27, byte_size(data) :: 32>> <> data)
-    result = receive do
-      {^pid, :data, :out, <<112, 198, 7, 27, data :: binary>>} -> data
-    after
-      timeout -> nil
-    end
+  def handle_call({:func_call, call}, _from, %{pid: pid} = state) do
+    encoded = FunctionCall.encode(call)
+    data = @proto_header <> <<byte_size(encoded) :: 32>> <> encoded
+    result = send_receive_proto(state.proc, data, FunctionResult)
     {:reply, result, state}
   end
   
@@ -83,17 +57,13 @@ defmodule ExSharp.Roslyn do
   def handle_cast({:load_asm, path}, state) do
     send_input(state.proc, ~s(#r "#{path}"))
     {:noreply, state}
-  end  
-  def handle_cast({:send, data}, state) do
-    send_input(state.proc, data)    
-    {:noreply, state}
   end
   
   def handle_info({pid, :data, :out, data}, %{pid: pid} = state) do
-    require Logger
-    data
-    |> String.split("\r\n", trim: true)
-    |> Enum.each(&IO.inspect(&1))
+    #require Logger
+    #data
+    #|> String.split("\r\n", trim: true)
+    #|> Enum.each(&IO.inspect(&1))
     {:noreply, state}
   end
   def handle_info({pid, :data, :err, error}, %{pid: pid} = state) do
@@ -107,10 +77,19 @@ defmodule ExSharp.Roslyn do
   
   defp roslyn_path, do: System.find_executable("csi.exe")
   
-  defp open_port(nil), do: raise ExSharpException, message: "Unable to locate csi.exe"
-  defp open_port(path), do: Porcelain.spawn(path, [], in: :receive, out: {:send, self()})
+  defp open_port(nil, _ex_sharp_path, _csx_path), do: raise ExSharpException, message: "Unable to locate csi.exe"
+  defp open_port(path, ex_sharp_path, nil), do: Porcelain.spawn(path, ["/r:#{ex_sharp_path}"], in: :receive, out: {:send, self()})
+  defp open_port(path, ex_sharp_path, csx_path), do: Porcelain.spawn(path, ["/r:#{ex_sharp_path}", csx_path], in: :receive, out: {:send, self()})
   
-  defp to_init_state(%Porcelain.Process{pid: pid} = proc), do: {:ok, %{pid: pid, proc: proc}}
+  defp send_receive_proto(%Porcelain.Process{pid: pid} = proc, data, message_module) do
+    send_input(proc, data)
+    result = receive do
+      {^pid, :data, :out, @proto_header <> data } -> data
+    after
+      @timeout_ms -> nil
+    end 
+    message_module.decode(result)
+  end
   
   defp send_input(%Porcelain.Process{} = proc, data) do
     unless String.ends_with?(data, ["\n", "\r\n"]) do
@@ -143,5 +122,5 @@ defmodule ExSharp.Roslyn do
       raise ExSharpException, message: "Unable to locate assembly"
     end
     path
-  end
+  end  
 end

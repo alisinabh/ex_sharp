@@ -3,39 +3,23 @@ defmodule ExSharp do
   alias ExSharp.Roslyn
   alias ExSharp.Messages.{ModuleSpec, ModuleList, FunctionCall, FunctionResult}
   @roslyn Roslyn
-  @ex_sharp_dll Path.expand("../priv/ExSharp.dll", __DIR__)
-  @send_mod_list_cmd <<203, 61, 10, 114>>
-  @atom_encoding :utf8
+  @ex_sharp_path Path.expand("../priv/ExSharp.dll", __DIR__)
   @csx_path Application.get_env(:ex_sharp, :csx_path)
+  @atom_encoding :utf8
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
     children = [
-      worker(@roslyn, [[name: @roslyn]])
+      worker(@roslyn, [@ex_sharp_path, @csx_path, [name: @roslyn]])
     ]
     opts = [strategy: :one_for_one, name: ExSharp.Supervisor]
     sup = Supervisor.start_link(children, opts)
-    IO.puts "test: #{@csx_path}"
-    unless is_nil(@csx_path) do
-      IO.puts "Loading csx `#{@csx_path}`..."
-      load_csx(@csx_path)
-    end
   end
   
   @doc """
   Defines modules and functions based on a `.csx` script file.
-  Best utilized in an `@on_load` module hook.
-    
-  ## Examples
+  Normally called indirectly by initializing a Roslyn process with a `.csx` file
   
-    defmodule Foo do
-      @on_load  :load_csx
-      
-      def load_csx do
-        ExSharp.load_csx("path/to/foo.csx")
-      end
-    end
-    
   ## Generated Code
       
   Given the following C# code:
@@ -60,23 +44,14 @@ defmodule ExSharp do
   
     * &Foo.bar/0
     * &Foo.baz/1      
-  """
-  def load_csx(path) do
-    Roslyn.load_assembly(@roslyn, @ex_sharp_dll)
-    Roslyn.load_script(@roslyn, path)
-    
-    Roslyn.send_data_receive_proto(@roslyn, @send_mod_list_cmd)
-    |> ModuleList.decode
-    |> init_modules
-  end
-  
-  defp init_modules(%ModuleList{} = mod_list) do
-    for module <- mod_list.modules, do: module |> init_module
+  """  
+  def init_modules(%ModuleList{} = mod_list) do
+    for module <- mod_list.modules, do: init_module(module)
     :ok
   end
   
   defp init_module(%ModuleSpec{} = mod_spec) do
-    fun_defs = get_functions(mod_spec.functions)
+    fun_defs = function_defs(mod_spec.functions)
     ~s"""
       defmodule #{mod_spec.name} do
         #{fun_defs}
@@ -86,7 +61,7 @@ defmodule ExSharp do
     :ok
   end
   
-  defp get_functions(funs) when is_list(funs) do
+  defp function_defs(funs) when is_list(funs) do
     funs
     |> Enum.map(&def_function/1)
     |> Enum.join("\n")
@@ -109,26 +84,24 @@ defmodule ExSharp do
   defp get_vars(_), do: raise ExSharpException, message: "Cannot define function with negative arity"
   
   @doc """
-  Attempts to call a C# function from the loaded script
+  Attempts to call a C# function
   """
   def csharp_apply(module, fun, args) do
-    data = 
-      FunctionCall.new(
-        moduleName: :erlang.atom_to_binary(module, @atom_encoding), 
-        functionName: fun, 
-        argc: length(args), 
-        argv: encode_argv(args))
-      |> FunctionCall.encode
-
-    Roslyn.send_proto_receive_proto(@roslyn, data)
-    |> FunctionResult.decode
+    build_function_call(module, fun, args)
+    |> send_function_call
     |> parse_result
   end
   
-  defp encode_argv(argv) do
-    argv
-    |> Enum.map(&:erlang.term_to_binary/1)
+  defp build_function_call(module, fun, args) do
+    FunctionCall.new(
+      moduleName: :erlang.atom_to_binary(module, @atom_encoding), 
+      functionName: fun, 
+      argc: length(args), 
+      argv: Enum.map(args, &:erlang.term_to_binary/1)
+    )
   end
+  
+  defp send_function_call(%FunctionCall{} = call), do: Roslyn.function_call(@roslyn, call)
   
   defp parse_result(%FunctionResult{value: value}), do: :erlang.binary_to_term(value)
 end
