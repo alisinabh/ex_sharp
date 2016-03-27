@@ -1,6 +1,6 @@
 # ExSharp
 
-**TODO: Add description**
+Call C# code from Elixir!
 
 ## Installation
 
@@ -45,15 +45,10 @@ Using the following C# code in `foo.csx`:
       var runner = new ExSharp.Runner();
       runner.Run();
         
-And a module with the following structure:
+And the following config value in `config.ex`:
 
-      defmodule Foo do
-        @on_load  :load_csx
-    
-        def load_csx do
-          ExSharp.load_csx("path/to/foo.csx")
-        end
-      end
+      config :ex_sharp, 
+        csx_path: Path.expand("../priv/ExampleScript.csx", __DIR__)
   
 The following functions will become available at runtime:
   
