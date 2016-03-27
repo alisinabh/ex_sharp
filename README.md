@@ -20,7 +20,7 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
         
 ## Usage
   
-Using the following C# code in `foo.csx`:
+Using the following C# code in `Foo.csx`:
  
       using System;
       using ExSharp;
@@ -48,7 +48,7 @@ Using the following C# code in `foo.csx`:
 And the following config value in `config.ex`:
 
       config :ex_sharp, 
-        csx_path: Path.expand("../priv/ExampleScript.csx", __DIR__)
+        csx_path: Path.expand("../priv/Foo.csx", __DIR__)
   
 The following functions will become available at runtime:
   
