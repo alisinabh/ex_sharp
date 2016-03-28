@@ -45,6 +45,7 @@ defmodule ExSharp do
     * &Foo.bar/0
     * &Foo.baz/1      
   """  
+  def init_modules(nil), do: :ok
   def init_modules(%ModuleList{} = mod_list) do
     for module <- mod_list.modules, do: init_module(module)
     :ok

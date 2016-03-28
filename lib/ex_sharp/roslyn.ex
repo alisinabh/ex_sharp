@@ -32,6 +32,7 @@ defmodule ExSharp.Roslyn do
   end
   
   # Server
+  
   def init([ex_sharp_path, nil]) do
     proc = open_port(roslyn_path, ex_sharp_path, nil)
     {:ok, %{proc: proc, pid: proc.pid}}
@@ -43,7 +44,7 @@ defmodule ExSharp.Roslyn do
     {:ok, %{proc: proc, pid: proc.pid}}
   end
   
-  def handle_call({:func_call, call}, _from, %{pid: pid} = state) do
+  def handle_call({:func_call, call}, _from, state) do
     encoded = FunctionCall.encode(call)
     data = @proto_header <> <<byte_size(encoded) :: 32>> <> encoded
     result = send_receive_proto(state.proc, data, FunctionResult)
@@ -83,12 +84,11 @@ defmodule ExSharp.Roslyn do
   
   defp send_receive_proto(%Porcelain.Process{pid: pid} = proc, data, message_module) do
     send_input(proc, data)
-    result = receive do
-      {^pid, :data, :out, @proto_header <> data } -> data
+    receive do
+      {^pid, :data, :out, @proto_header <> data } -> message_module.decode(data)
     after
       @timeout_ms -> nil
-    end 
-    message_module.decode(result)
+    end
   end
   
   defp send_input(%Porcelain.Process{} = proc, data) do
