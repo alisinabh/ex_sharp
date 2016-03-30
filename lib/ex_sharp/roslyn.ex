@@ -61,10 +61,10 @@ defmodule ExSharp.Roslyn do
   end
   
   def handle_info({pid, :data, :out, data}, %{pid: pid} = state) do
-    #require Logger
-    #data
-    #|> String.split("\r\n", trim: true)
-    #|> Enum.each(&IO.inspect(&1))
+    require Logger
+    data
+    |> String.split("\r\n", trim: true)
+    |> Enum.each(&IO.inspect(&1))
     {:noreply, state}
   end
   def handle_info({pid, :data, :err, error}, %{pid: pid} = state) do
