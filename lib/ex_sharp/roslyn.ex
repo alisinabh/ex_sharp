@@ -2,7 +2,8 @@ defmodule ExSharp.Roslyn do
   use GenServer
   @script_extension ".csx"
   @asm_extension ".dll"
-  @timeout_ms 1000
+  @default_timeout_ms 5000
+  @timeout_ms Application.get_env(:ex_sharp, :timeout, @default_timeout_ms)
   @send_mod_list_cmd <<203, 61, 10, 114>>
   @proto_header <<112, 198, 7, 27>>
   alias ExSharp.Messages.{ModuleList, FunctionCall, FunctionResult}
