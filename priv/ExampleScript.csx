@@ -43,6 +43,14 @@ public static class Foo
     var e = hash1 == hash2;
     return ElixirTerm.MakeAtom(e.ToString());
   }
+  
+  [ExSharpFunction("tuple", 0)]
+  public static ElixirTerm Tuple(ElixirTerm[] argv, int argc) 
+  {
+    var size = 256;
+    var elems = new ElixirTerm[]{ElixirTerm.MakeAtom("error"), ElixirTerm.MakeUTF8String("invalid blah")};
+    return ElixirTerm.MakeTuple(elems);
+  }
 }
 
 var runner = new ExSharp.Runner();
