@@ -91,36 +91,54 @@ So far the following Elixir types are able to be retrieved/returned from C# code
 
 ### Type Conversions
 
-  * Byte:  
-        byte? b = ElixirTerm.GetByte(argv[0]);
-        ElixirTerm t = ElixirTerm.MakeByte(b);
+  * Byte:
+      ```
+      byte? b = ElixirTerm.GetByte(argv[0]);
+      ElixirTerm t = ElixirTerm.MakeByte(b);
+      ```
   * Int:
-        int? i = ElixirTerm.GetInt(argv[0]);
-        ElixirTerm t = ElixirTerm.MakeInt(i);
+      ```
+      int? i = ElixirTerm.GetInt(argv[0]);
+      ElixirTerm t = ElixirTerm.MakeInt(i);
+      ```
   * Double:  
-        double? d = ElixirTerm.GetDouble(argv[0]);
-        ElixirTerm t = ElixirTerm.MakeDouble(d);
+      ```
+      double? d = ElixirTerm.GetDouble(argv[0]);
+      ElixirTerm t = ElixirTerm.MakeDouble(d);
+      ```
   * Atom:
-        string a = ElixirTerm.GetAtom(argv[0]);
-        ElixirTerm t = ElixirTerm.MakeAtom(a);
-  * Byte String:  
-        string s = ElixirTerm.GetUTF8String(argv[0]);
-        ElixirTerm t = ElixirTerm.MakeUTF8String(s);
+      ```
+      string a = ElixirTerm.GetAtom(argv[0]);
+      ElixirTerm t = ElixirTerm.MakeAtom(a);
+      ```
+  * Byte String: 
+      ```
+      string s = ElixirTerm.GetUTF8String(argv[0]);
+      ElixirTerm t = ElixirTerm.MakeUTF8String(s);
+      ```
   * PID:
-        PID p = ElixirTerm.GetPID(argv[0]);
-        ElixirTerm t = ElixirTerm.MakePID(p);
+      ```        
+      PID p = ElixirTerm.GetPID(argv[0]);
+      ElixirTerm t = ElixirTerm.MakePID(p);
+      ```
   * Reference:
-        Reference r = ElixirTerm.GetReference(argv[0]);
-        ElixirTerm t = ElixirTerm.MakeReference(r);
+      ```  
+      Reference r = ElixirTerm.GetReference(argv[0]);
+      ElixirTerm t = ElixirTerm.MakeReference(r);
+      ```
   * Empty List:  
-        EmptyList e = ElixirTerm.GetEmptyList(argv[0]);
-        ElixirTerm t = ElixirTerm.MakeEmptyList();
+      ```  
+      EmptyList e = ElixirTerm.GetEmptyList(argv[0]);
+      ElixirTerm t = ElixirTerm.MakeEmptyList();
+      ```
   * Tuple:
-        Tuple t = ElixirTerm.GetTuple(argv[0]);
-        ElixirTerm t = ElixirTerm.MakeTuple(new ElixirTerm[]{
-          ElixirTerm.MakeAtom("error"), 
-          ElixirTerm.MakeAtom("timeout")
-        });
+      ```
+      Tuple t = ElixirTerm.GetTuple(argv[0]);
+      ElixirTerm t = ElixirTerm.MakeTuple(new ElixirTerm[]{
+        ElixirTerm.MakeAtom("error"), 
+        ElixirTerm.MakeAtom("timeout")
+      });
+      ```
 
 ### Custom C# Types
 
