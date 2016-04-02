@@ -2,6 +2,8 @@
 
 Call C# code from Elixir!
 
+Note: requires C# Interactive (csi.exe) to be installed and included in your path
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
