@@ -51,6 +51,12 @@ public static class Foo
     var elems = new ElixirTerm[]{ElixirTerm.MakeAtom("error"), ElixirTerm.MakeUTF8String("invalid blah")};
     return ElixirTerm.MakeTuple(elems);
   }
+  
+  [ExSharpFunction("work", 0)]
+  public static void Work(ElixirTerm[] argv, int argc) 
+  {
+    return;
+  }
 }
 
 var runner = new ExSharp.Runner();
