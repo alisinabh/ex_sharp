@@ -8,12 +8,21 @@ defmodule ExSharp do
   @atom_encoding :utf8
 
   def start(_type, _args) do
+    if is_nil(@csx_path), do: raise csx_not_found
+      
     import Supervisor.Spec, warn: false
     children = [
       worker(@roslyn, [@ex_sharp_path, @csx_path, [name: @roslyn]])
     ]
     opts = [strategy: :one_for_one, name: ExSharp.Supervisor]
-    sup = Supervisor.start_link(children, opts)
+    Supervisor.start_link(children, opts)
+  end
+  
+  defp csx_not_found do
+    ~s"""
+    C# script path not set.  Add an entry similar to the following to your `config.exs`:
+      config :ex_sharp, csx_path: Path.expand("../priv/Foo.csx", __DIR__)
+    """
   end
   
   @doc """
