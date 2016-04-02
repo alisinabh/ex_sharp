@@ -22,7 +22,6 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
   
 Using the following C# code in `Foo.csx`:
  
-    ```
     using System;
     using ExSharp;
     
@@ -45,7 +44,6 @@ Using the following C# code in `Foo.csx`:
     
     var runner = new ExSharp.Runner();
     runner.Run();
-    ```
         
 And the following config value in `config.ex`:
 
