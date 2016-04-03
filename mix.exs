@@ -13,8 +13,7 @@ defmodule ExSharp.Mixfile do
   end
   
   def application do
-    [applications: [:logger, :porcelain],
-     mod: {ExSharp, []}]
+    [applications: [:logger, :porcelain]]
   end
   
   defp deps do

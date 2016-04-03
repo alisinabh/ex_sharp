@@ -1,6 +1,7 @@
 defmodule ExSharp.Roslyn do
   use GenServer  
   alias ExSharp.Messages.{ModuleList, FunctionCall, FunctionResult}
+  @ex_sharp_path Path.expand("../../priv/ExSharp.dll", __DIR__)
   @default_timeout_ms 5000
   @timeout_ms Application.get_env(:ex_sharp, :timeout, @default_timeout_ms)
   @start_signal <<37, 10, 246, 113>>
@@ -9,8 +10,8 @@ defmodule ExSharp.Roslyn do
   
   # Client
   
-  def start_link(ex_sharp_path, csx_path, opts \\ []) do
-    GenServer.start_link(__MODULE__, [ex_sharp_path, csx_path], opts)
+  def start_link(csx_path, opts \\ []) do
+    GenServer.start_link(__MODULE__, [csx_path], opts)
   end
   
   def function_call(server, %FunctionCall{} = call) do
@@ -19,11 +20,11 @@ defmodule ExSharp.Roslyn do
   
   # Server
   
-  def init([ex_sharp_path, csx_path]) do
-    proc = open_port(roslyn_path, ex_sharp_path, csx_path)    
+  def init([csx_path]) do
+    proc = open_port(roslyn_path, csx_path)    
     receive_start_signal(proc)  
     |> send_receive_proto(@send_mod_list_cmd, ModuleList)
-    |> ExSharp.init_modules
+    |> ExSharp.init_modules(self)
     {:ok, %{proc: proc, pid: proc.pid}}
   end
   
@@ -52,8 +53,8 @@ defmodule ExSharp.Roslyn do
   
   defp roslyn_path, do: System.find_executable("csi.exe")
   
-  defp open_port(nil, _ex_sharp_path, _csx_path), do: raise "Unable to locate csi.exe"
-  defp open_port(path, ex_sharp_path, csx_path), do: Porcelain.spawn(path, ["/r:#{ex_sharp_path}", csx_path], in: :receive, out: {:send, self()})
+  defp open_port(nil, _csx_path), do: raise "Unable to locate csi.exe"
+  defp open_port(path, csx_path), do: Porcelain.spawn(path, ["/r:#{@ex_sharp_path}", csx_path], in: :receive, out: {:send, self()})
   
   defp receive_start_signal(%Porcelain.Process{pid: pid} = proc) do
     receive do

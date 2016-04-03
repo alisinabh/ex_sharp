@@ -2,28 +2,7 @@ defmodule ExSharp do
   use Application
   alias ExSharp.Roslyn
   alias ExSharp.Messages.{ModuleSpec, ModuleList, FunctionCall, FunctionResult}
-  @roslyn Roslyn
-  @ex_sharp_path Path.expand("../priv/ExSharp.dll", __DIR__)
-  @csx_path Application.get_env(:ex_sharp, :csx_path)
   @atom_encoding :utf8
-
-  def start(_type, _args) do
-    if is_nil(@csx_path), do: raise csx_not_found
-      
-    import Supervisor.Spec, warn: false
-    children = [
-      worker(@roslyn, [@ex_sharp_path, @csx_path, [name: @roslyn]])
-    ]
-    opts = [strategy: :one_for_one, name: ExSharp.Supervisor]
-    Supervisor.start_link(children, opts)
-  end
-  
-  defp csx_not_found do
-    ~s"""
-    C# script path not set.  Add an entry similar to the following to your `config.exs`:
-      config :ex_sharp, csx_path: Path.expand("../priv/Foo.csx", __DIR__)
-    """
-  end
   
   @doc """
   Defines modules and functions based on a `.csx` script file.
@@ -54,20 +33,21 @@ defmodule ExSharp do
     * &Foo.bar/0
     * &Foo.baz/1      
   """  
-  def init_modules(nil), do: :ok
-  def init_modules(%ModuleList{} = mod_list) do
-    for module <- mod_list.modules, do: init_module(module)
+  def init_modules(nil, _roslyn), do: :ok
+  def init_modules(%ModuleList{} = mod_list, roslyn) do
+    for module <- mod_list.modules, do: init_module(module, roslyn)
     :ok
   end
   
-  defp init_module(%ModuleSpec{} = mod_spec) do
+  defp init_module(%ModuleSpec{} = mod_spec, roslyn) do
     fun_defs = function_defs(mod_spec.functions)
     ~s"""
       defmodule #{mod_spec.name} do
+        @roslyn roslyn
         #{fun_defs}
       end
     """
-    |> Code.eval_string
+    |> Code.eval_string([roslyn: roslyn])
     :ok
   end
   
@@ -81,7 +61,7 @@ defmodule ExSharp do
     vars = get_vars(fun.arity)
     ~s"""
       def #{fun.name}(#{vars}) do
-        ExSharp.csharp_apply(__MODULE__, "#{fun.name}", [#{vars}])
+        ExSharp.csharp_apply(@roslyn, __MODULE__, "#{fun.name}", [#{vars}])
       end
     """
   end
@@ -96,9 +76,9 @@ defmodule ExSharp do
   @doc """
   Attempts to call a C# function
   """
-  def csharp_apply(module, fun, args) do
+  def csharp_apply(roslyn, module, fun, args) do
     build_function_call(module, fun, args)
-    |> send_function_call
+    |> send_function_call(roslyn)
     |> parse_result
   end
   
@@ -111,7 +91,7 @@ defmodule ExSharp do
     )
   end
   
-  defp send_function_call(%FunctionCall{} = call), do: Roslyn.function_call(@roslyn, call)
+  defp send_function_call(%FunctionCall{} = call, roslyn), do: Roslyn.function_call(roslyn, call)
   
   defp parse_result(%FunctionResult{value: value}), do: :erlang.binary_to_term(value)
 end
