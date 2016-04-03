@@ -69,6 +69,8 @@ So far the following Elixir types are able to be retrieved/returned from C# code
   * Reference
   * Empty List
   * Tuple
+  * Byte List ("String")
+  * List
   
 ## C# API
 
@@ -156,6 +158,24 @@ So far the following Elixir types are able to be retrieved/returned from C# code
       ElixirTerm t = ElixirTerm.MakeTuple(new ElixirTerm[]{
         ElixirTerm.MakeAtom("error"), 
         ElixirTerm.MakeAtom("timeout")
+      });
+      ```
+  
+  * Byte List:
+  
+      ```
+      byte[] b ElixirTerm.GetByteString(argv[0]);
+      ElixirTerm t = ElixirTerm.MakeByteList(b);
+      ```
+  
+  * List:
+      
+      ```
+      ElixirTerm[] l = ElixirTerm.GetTuple(argv[0]);
+      ElixirTerm t = ElixirTerm.MakeList(new ElixirTerm[]{
+        ElixirTerm.MakeAtom("option1"), 
+        ElixirTerm.MakeAtom("option2"),
+        ElixirTerm.MakeEmptyList()
       });
       ```
 

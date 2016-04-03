@@ -8,7 +8,10 @@ public static class Foo
   [ExSharpFunction("pi", 0)]
   public static ElixirTerm Pi(ElixirTerm[] argv, int argc) 
   {
-    throw new Exception("boo");
+    return ElixirTerm.MakeList(new ElixirTerm[]{
+      ElixirTerm.MakeInt(1),
+      ElixirTerm.MakeInt(2)
+    });
   }
 }
 
