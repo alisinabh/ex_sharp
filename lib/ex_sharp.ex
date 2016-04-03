@@ -1,5 +1,4 @@
 defmodule ExSharp do
-  use Application
   alias ExSharp.Roslyn
   alias ExSharp.Messages.{ModuleSpec, ModuleList, FunctionCall, FunctionResult}
   @atom_encoding :utf8
