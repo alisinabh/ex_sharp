@@ -47,10 +47,11 @@ Using the following C# code in `Foo.csx`:
     var runner = new ExSharp.Runner();
     runner.Run();
         
-And the following config value in `config.ex`:
+Create an `ExSharp.Roslyn` process with it's first argument being the path to said `.csx` script.
+It is recommended that this process be supervised.
 
-      config :ex_sharp, 
-        csx_path: Path.expand("../priv/Foo.csx", __DIR__)
+      Path.expand("../priv/Foo.csx", __DIR__)
+      |> ExSharp.Roslyn.start_link
   
 The following functions will become available at runtime:
   
