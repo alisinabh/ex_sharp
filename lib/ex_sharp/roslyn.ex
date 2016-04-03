@@ -1,12 +1,13 @@
 defmodule ExSharp.Roslyn do
   use GenServer  
-  alias ExSharp.Messages.{ModuleList, FunctionCall, FunctionResult}
+  alias ExSharp.Messages.{ModuleList, FunctionCall, FunctionResult, ElixirCallback}
   @ex_sharp_path Path.expand("../../priv/ExSharp.dll", __DIR__)
   @default_timeout_ms 5000
   @timeout_ms Application.get_env(:ex_sharp, :timeout, @default_timeout_ms)
   @start_signal <<37, 10, 246, 113>>
   @send_mod_list_cmd <<203, 61, 10, 114>>
   @proto_header <<112, 198, 7, 27>>
+  @callback_header <<177, 229, 171, 48>>
   
   # Client
   
@@ -35,11 +36,16 @@ defmodule ExSharp.Roslyn do
     {:reply, result, state}
   end
   
+  def handle_info({pid, :data, :out, @callback_header <> @proto_header <> data}, %{pid: pid} = state) do
+    ElixirCallback.decode(data)
+    |> apply_callback
+    {:noreply, state}
+  end
   def handle_info({pid, :data, :out, _data}, %{pid: pid} = state) do
-    #require Logger
-    #data
-    #|> String.split("\r\n", trim: true)
-    #|> Enum.each(&IO.inspect(&1))
+    require Logger
+    _data
+    |> String.split("\r\n", trim: true)
+    |> Enum.each(&IO.inspect(&1))
     {:noreply, state}
   end
   def handle_info({pid, :data, :err, _error}, %{pid: pid} = state) do
@@ -47,7 +53,7 @@ defmodule ExSharp.Roslyn do
   end
   def handle_info({pid, :result, _result}, %{pid: pid} = state) do
     {:noreply, state}
-  end
+  end  
   
   # Private
   
@@ -79,5 +85,11 @@ defmodule ExSharp.Roslyn do
       data = data <> "\r\n"
     end
     Porcelain.Process.send_input(proc, data)
+  end
+  
+  defp apply_callback(%ElixirCallback{} = cb) do
+    fun = :erlang.binary_to_term(cb.fun)
+    args = Enum.map(cb.args, &:erlang.binary_to_term/1)
+    apply(fun, args)
   end
 end

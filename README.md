@@ -72,6 +72,7 @@ So far the following Elixir types are able to be retrieved/returned from C# code
   * Tuple
   * Byte List ("String")
   * List
+  * Export
   
 ## C# API
 
@@ -179,6 +180,14 @@ So far the following Elixir types are able to be retrieved/returned from C# code
         ElixirTerm.MakeEmptyList()
       });
       ```
+      
+  * Export:
+  
+      ```
+      Export e1 = ElixirTerm.GetExport(argv[0]);
+      Export e2 = new Export("String", "downcase", 1);
+      ElixirTerm t = ElixirTerm.MakeExport(e2);
+      ```
 
 ### Custom C# Types
 
@@ -195,6 +204,10 @@ So far the following Elixir types are able to be retrieved/returned from C# code
     * ID (int[])
   * Tuple
     * Arity (int)
+  * Export
+    * Module (string)
+    * Function (string)
+    * Arity (byte)
   
   
   #### Tuple Usage
@@ -202,4 +215,25 @@ So far the following Elixir types are able to be retrieved/returned from C# code
       Tuple t = ElixirTerm.GetTuple(argv[0]);
       string a = ElixirTerm.GetAtom(t[0]);
       string s = ElixirTerm.GetUTF8String(t[1]);
+
+### Elixir Callbacks From C#
+
+  You can call elixir functions or set up events to trigger them by using `ExSharp.Runner.ElixirCallback(fun, args)`.
+  
+  `fun` is an ElixirTerm with tag `TagType.NEW_FUN` or `TagType.EXPORT`.
+  
+  #### Examples  
+  
+      [ExSharpFunction("call", 0)]
+      public static void Call(ElixirTerm[] argv, int argc)
+      {
+        ExSharp.Runner.ElixirCallback(argv[0], new ElixirTerm[0]);
+      }      
+      
+      iex> fun = fn -> IO.puts "Hi!" end
+      iex> Foo.call(fun)
+      iex> :ok
+      iex> HI    
+      
+      
       

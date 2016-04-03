@@ -23,3 +23,8 @@ message FunctionCall {
 message FunctionResult {
 	required bytes value = 1;
 }
+
+message ElixirCallback {
+  required bytes fun = 1;
+  repeated bytes args = 2;
+}
