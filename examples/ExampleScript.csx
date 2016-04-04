@@ -16,4 +16,4 @@ public static class Foo
 }
 
 var runner = new ExSharp.Runner();
-runner.Run();
+await runner.Run();

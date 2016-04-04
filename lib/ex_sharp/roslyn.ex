@@ -4,6 +4,7 @@ defmodule ExSharp.Roslyn do
   @ex_sharp_path Path.expand("../../priv/ExSharp.dll", __DIR__)
   @default_timeout_ms 5000
   @timeout_ms Application.get_env(:ex_sharp, :timeout, @default_timeout_ms)
+  @inspect_stdio Application.get_env(:ex_sharp, :inspect_stdio, false)
   @start_signal <<37, 10, 246, 113>>
   @send_mod_list_cmd <<203, 61, 10, 114>>
   @proto_header <<112, 198, 7, 27>>
@@ -41,11 +42,12 @@ defmodule ExSharp.Roslyn do
     |> apply_callback
     {:noreply, state}
   end
-  def handle_info({pid, :data, :out, _data}, %{pid: pid} = state) do
-    require Logger
-    _data
-    |> String.split("\r\n", trim: true)
-    |> Enum.each(&IO.inspect(&1))
+  def handle_info({pid, :data, :out, data}, %{pid: pid} = state) do
+    if @inspect_stdio do
+      data
+      |> String.split("\r\n", trim: true)
+      |> Enum.each(&IO.inspect(&1))
+    end
     {:noreply, state}
   end
   def handle_info({pid, :data, :err, _error}, %{pid: pid} = state) do
