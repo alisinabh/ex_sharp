@@ -26,6 +26,7 @@ Using the following C# code in `Foo.csx`:
  
     using System;
     using ExSharp;
+    using static ExSharp.Runner;
     
     [ExSharpModule("Foo")]
     public static class Foo 
@@ -44,8 +45,7 @@ Using the following C# code in `Foo.csx`:
       }
     }
     
-    var runner = new ExSharp.Runner();
-    runner.Run();
+    Init(typeof(Foo), typeof(Bar), etc...);
         
 Create an `ExSharp.Roslyn` process with it's first argument being the path to said `.csx` script.
 It is recommended that this process be supervised.

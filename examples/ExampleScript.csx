@@ -15,5 +15,4 @@ public static class Foo
   }
 }
 
-var runner = new ExSharp.Runner();
-await runner.Run();
+Init(typeof(Foo));
