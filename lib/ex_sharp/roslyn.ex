@@ -59,9 +59,9 @@ defmodule ExSharp.Roslyn do
   
   # Private
   
-  defp roslyn_path, do: System.find_executable("csi.exe")
+  defp roslyn_path, do: System.find_executable("csi")
   
-  defp open_port(nil, _csx_path), do: raise "Unable to locate csi.exe"
+  defp open_port(nil, _csx_path), do: raise "Unable to locate csi"
   defp open_port(path, csx_path), do: Porcelain.spawn(path, ["/r:#{@ex_sharp_path}", csx_path], in: :receive, out: {:send, self()})
   
   defp receive_start_signal(%Porcelain.Process{pid: pid} = proc) do
